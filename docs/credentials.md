@@ -66,7 +66,27 @@ The command prompts for the token. Do not put the token directly on the command 
 - The Generic Password's password is the Jira API token.
 - The profile-level `user` supplies the Atlassian email. It may equal the Keychain account, but the two fields have separate purposes.
 
-The pair of `service` and `account` identifies the item, so both values must match exactly. The adapter uses Security.framework directly. During a normal interactive command, macOS may request the login/keychain password and offer **Allow Once**, **Always Allow**, or **Deny**; this is macOS authorizing `jcli`, not Jira requesting the API token. Choose **Always Allow** only when the displayed requesting executable is the expected `jcli` installation.
+The pair of `service` and `account` identifies the item, so both values must match exactly. The adapter uses Security.framework directly.
+
+### Required first-use authorization
+
+Before using the Keychain provider in automation, run an interactive check:
+
+```zsh
+jcli auth doctor --profile work --json
+```
+
+macOS may request the login/keychain password and offer **Allow Once**, **Always Allow**, or **Deny**. This prompt is macOS authorizing `jcli` to read the selected Generic Password; it is not Jira requesting the API token.
+
+1. Verify that the requesting program shown by macOS is the expected `jcli` installation.
+2. Enter the macOS login/keychain password.
+3. Click **Always Allow**.
+
+The button choice matters:
+
+- **Always Allow** authorizes subsequent invocations to read this item without another prompt.
+- **Allow Once** authorizes only the current process. A later interactive invocation prompts again, and a later `--non-interactive` invocation fails because JiraCli will not display authorization UI in that mode.
+- **Deny** returns `credential_store_access_denied`.
 
 With `--non-interactive`, JiraCli disables Keychain UI and limits the lookup to 15 seconds. An item that requires a prompt then fails safely instead of hanging an automation or agent process. Pre-authorize the installed `jcli` executable in the item's Keychain Access **Access Control** pane before using it noninteractively.
 
@@ -76,7 +96,7 @@ If access unexpectedly fails, confirm that the item is a Generic Password in the
 jcli auth doctor --profile work --json
 ```
 
-After interactive authorization succeeds, verify the automation path separately:
+After selecting **Always Allow**, verify the automation path separately:
 
 ```zsh
 jcli auth doctor --profile work --non-interactive --json

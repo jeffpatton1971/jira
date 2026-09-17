@@ -227,6 +227,22 @@ The `credential` object is a reference to an existing OS credential-store item; 
 
 The native item's password/secret contains the Jira API token. Its lookup fields must match the JSON exactly. The profile-level `user` is the Atlassian login email and is independent of a credential-store account label. See the [credential-provider setup guide](docs/credentials.md) for native provisioning steps and a property-by-property reference.
 
+### Authorize macOS Keychain access on first use
+
+Run the first Keychain-backed check **without** `--non-interactive`:
+
+```zsh
+jcli auth doctor --profile work --json
+```
+
+When macOS requests the login/keychain password, verify that the requesting program is the expected `jcli` installation, enter the macOS password, and click **Always Allow**. This authorizes later invocations to read that one Keychain item without prompting. **Allow Once** works only for the current invocation; subsequent `--non-interactive` commands will fail because they are not permitted to display another authorization prompt.
+
+After selecting **Always Allow**, verify prompt-free access:
+
+```zsh
+jcli auth doctor --profile work --non-interactive --json
+```
+
 If you intentionally accept the risk of storing a plaintext token, `jcli` can read a `token` property from a user-owned configuration file:
 
 ```json

@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../JiraCli.Core/JiraCli.Core.csproj" />
+    <ProjectReference Include="../JiraCli.Credentials/JiraCli.Credentials.csproj" />
+  </ItemGroup>
+</Project>

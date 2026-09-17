@@ -5,5 +5,6 @@
     <Project Path="src/JiraCli.Credentials.Windows/JiraCli.Credentials.Windows.csproj" />
     <Project Path="src/JiraCli.Credentials.Mac/JiraCli.Credentials.Mac.csproj" />
     <Project Path="src/JiraCli.Credentials.Linux/JiraCli.Credentials.Linux.csproj" />
+    <Project Path="src/JiraCli.JiraCloud/JiraCli.JiraCloud.csproj" />
   </Folder>
 </Solution>

@@ -1,5 +1,9 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/JiraCli.Core/JiraCli.Core.csproj" />
+    <Project Path="src/JiraCli.Credentials/JiraCli.Credentials.csproj" />
+    <Project Path="src/JiraCli.Credentials.Windows/JiraCli.Credentials.Windows.csproj" />
+    <Project Path="src/JiraCli.Credentials.Mac/JiraCli.Credentials.Mac.csproj" />
+    <Project Path="src/JiraCli.Credentials.Linux/JiraCli.Credentials.Linux.csproj" />
   </Folder>
 </Solution>

@@ -6,6 +6,18 @@ namespace JiraCli.Tests;
 public sealed class CliTests
 {
     [Fact]
+    public void Version_does_not_include_source_revision_metadata()
+    {
+        var version = typeof(CliApplication).Assembly
+            .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), inherit: false)
+            .Cast<System.Reflection.AssemblyInformationalVersionAttribute>()
+            .Single()
+            .InformationalVersion;
+
+        Assert.DoesNotContain('+', version);
+    }
+
+    [Fact]
     public async Task Create_dry_run_preserves_custom_fields_without_network_write()
     {
         var result = await RunAsync([

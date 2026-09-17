@@ -8,4 +8,7 @@
     <Project Path="src/JiraCli.JiraCloud/JiraCli.JiraCloud.csproj" />
     <Project Path="src/JiraCli.Cli/JiraCli.Cli.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/JiraCli.Tests/JiraCli.Tests.csproj" />
+  </Folder>
 </Solution>

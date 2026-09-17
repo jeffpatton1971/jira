@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.400
+      - name: Restore
+        run: dotnet restore JiraCli.slnx
+      - name: Build
+        run: dotnet build JiraCli.slnx --configuration Release --no-restore
+      - name: Test
+        run: dotnet test JiraCli.slnx --configuration Release --no-build --logger "trx;LogFileName=${{ runner.os }}.trx" --results-directory TestResults
+      - name: Pack tool candidate
+        run: dotnet pack src/JiraCli.Cli/JiraCli.Cli.csproj --configuration Release --no-build --output artifacts
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: test-results-${{ runner.os }}
+          path: TestResults
+
+# Publishing, tags, releases, and release workflow dispatches are intentionally absent.

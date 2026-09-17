@@ -10,9 +10,56 @@ The implemented commands cover Jira Cloud projects, create/edit metadata, users,
 
 Rovo's federated or natural-language search is not equivalent to JQL. This tool provides Jira JQL search and does not claim federated Rovo search parity.
 
-## Build
+## Workstation setup
 
-Prerequisite: a supported .NET 10 SDK.
+Building and installing `jcli` from this repository requires Git and the **.NET 10 SDK**. The runtime alone is not enough to restore, test, pack, or publish the project. Installing the SDK also installs the corresponding runtime.
+
+First identify the operating-system architecture:
+
+| OS | Command | Architecture result |
+|---|---|---|
+| Windows PowerShell | `Get-CimInstance Win32_ComputerSystem \| Select-Object SystemType` | `x64-based PC` = `x64`; `ARM64-based PC` = `arm64` |
+| macOS | `uname -m` | `x86_64` = `x64`; `arm64` = `arm64` |
+| Linux | `uname -m` | `x86_64` = `x64`; `aarch64` or `arm64` = `arm64` |
+
+Then obtain the .NET 10 SDK for that architecture:
+
+### Windows
+
+WinGet automatically selects the native architecture:
+
+```powershell
+winget install --id Microsoft.DotNet.SDK.10 --exact --source winget
+```
+
+If WinGet is unavailable, select the matching `x64` or `Arm64` SDK installer from [Microsoft's Windows installation page](https://learn.microsoft.com/dotnet/core/install/windows).
+
+### macOS
+
+Download the .NET 10 SDK installer from [Microsoft's macOS installation page](https://learn.microsoft.com/dotnet/core/install/macos). Choose `Arm64` for Apple silicon (M-series) or `x64` for an Intel Mac.
+
+### Linux
+
+Use [Microsoft's distribution-specific Linux instructions](https://learn.microsoft.com/dotnet/core/install/linux). When the appropriate package feed is configured, the SDK package is normally named `dotnet-sdk-10.0`. For example:
+
+```bash
+sudo apt update
+sudo apt install dotnet-sdk-10.0
+```
+
+Microsoft's .NET 10 Linux packages are available for `x64` and `arm64`; package availability and prerequisite setup vary by distribution.
+
+Open a new terminal after installation and verify the SDK:
+
+```text
+dotnet --version
+dotnet --info
+dotnet --list-sdks
+```
+
+This repository requests SDK `10.0.400` with `latestFeature` roll-forward in `global.json`, so `dotnet --version` must resolve to `10.0.400` or a later .NET 10 SDK. If an older SDK is selected, install a current .NET 10 SDK before continuing.
+
+## Build
 
 ```text
 dotnet restore JiraCli.slnx
@@ -20,19 +67,60 @@ dotnet build JiraCli.slnx --configuration Release --no-restore
 dotnet test JiraCli.slnx --configuration Release --no-build
 ```
 
-The repository selects SDK feature band `10.0.400` with controlled roll-forward in `global.json`.
+## Install `jcli`
 
-## Install as a .NET tool
+No package or executable release has been published yet. Each operating system currently installs `jcli` by cloning this repository, creating a local .NET tool package, and installing that package globally for the current user.
 
-Create and install a local package:
+### Windows PowerShell
 
-```text
-dotnet pack src/JiraCli.Cli/JiraCli.Cli.csproj -c Release -o artifacts
-dotnet tool install --global JiraCli.Tool --add-source artifacts
+```powershell
+git clone https://github.com/jeffpatton1971/jira.git
+Set-Location jira
+dotnet restore JiraCli.slnx
+dotnet test JiraCli.slnx --configuration Release
+dotnet pack src/JiraCli.Cli/JiraCli.Cli.csproj --configuration Release --output artifacts
+dotnet tool install --global JiraCli.Tool --add-source (Resolve-Path artifacts)
+jcli --version
 jcli --help
 ```
 
-For a repository-pinned local tool:
+The SDK installer normally makes `%USERPROFILE%\.dotnet\tools` available on `PATH`. If `jcli` is not found, add that directory to the user `PATH`, then open a new terminal.
+
+### macOS Terminal (`zsh`)
+
+Run these commands in Terminal using the default macOS shell, `zsh`:
+
+```bash
+git clone https://github.com/jeffpatton1971/jira.git
+cd jira
+dotnet restore JiraCli.slnx
+dotnet test JiraCli.slnx --configuration Release
+dotnet pack src/JiraCli.Cli/JiraCli.Cli.csproj --configuration Release --output artifacts
+dotnet tool install --global JiraCli.Tool --add-source "$PWD/artifacts"
+export PATH="$PATH:$HOME/.dotnet/tools"
+jcli --version
+jcli --help
+```
+
+Add the `export PATH=...` line to `~/.zprofile` to make it persistent, then open a new Terminal window.
+
+### Linux terminal (`bash`)
+
+```bash
+git clone https://github.com/jeffpatton1971/jira.git
+cd jira
+dotnet restore JiraCli.slnx
+dotnet test JiraCli.slnx --configuration Release
+dotnet pack src/JiraCli.Cli/JiraCli.Cli.csproj --configuration Release --output artifacts
+dotnet tool install --global JiraCli.Tool --add-source "$PWD/artifacts"
+export PATH="$PATH:$HOME/.dotnet/tools"
+jcli --version
+jcli --help
+```
+
+Add the `PATH` export to `~/.profile`, `~/.bashrc`, or the appropriate shell startup file. Install `libsecret-1` and provision a Secret Service session only if the Linux Secret Service credential provider will be used; token input through standard input or an environment variable does not require it.
+
+For a repository-pinned local tool instead of a user-wide installation:
 
 ```text
 dotnet new tool-manifest
@@ -50,30 +138,60 @@ dotnet publish src/JiraCli.Cli/JiraCli.Cli.csproj -c Release -r osx-arm64 --self
 
 Trimming and Native AOT remain disabled until command parsing, JSON, and native credential adapters have dedicated compatibility coverage.
 
-## Exact macOS installation and verification
+## Configuration file location
 
-These steps require no PowerShell:
+`jcli` looks for one configuration document. The path is resolved in this order:
 
-```bash
-git clone https://github.com/jeffpatton1971/jira.git
-cd jira
-dotnet --info
-dotnet restore JiraCli.slnx
-dotnet test JiraCli.slnx -c Release
-dotnet pack src/JiraCli.Cli/JiraCli.Cli.csproj -c Release -o artifacts
-dotnet tool install --global JiraCli.Tool --add-source "$PWD/artifacts"
-export PATH="$PATH:$HOME/.dotnet/tools"
-jcli --version
-jcli --help
+1. The `--config` command-line option.
+2. The `JIRACLI_CONFIG` environment variable.
+3. The default path for the current OS.
+
+| OS | Automatically detected default |
+|---|---|
+| Windows | `%APPDATA%\jiracli\config.json` |
+| macOS | `~/Library/Application Support/jiracli/config.json` |
+| Linux | `${XDG_CONFIG_HOME:-$HOME/.config}/jiracli/config.json` |
+
+The CLI reads the file but does not create it or its parent directory. Create it yourself at the default location for automatic detection, or pass another location explicitly.
+
+On macOS and Linux, protect the directory and file from other local users. `jcli` checks the file mode and warns when the configuration is group- or other-accessible:
+
+```zsh
+# macOS
+chmod 700 "$HOME/Library/Application Support/jiracli"
+chmod 600 "$HOME/Library/Application Support/jiracli/config.json"
 ```
 
-Verify a configured profile without exposing the token:
-
 ```bash
-jcli auth doctor --profile work --json
+# Linux
+chmod 700 "${XDG_CONFIG_HOME:-$HOME/.config}/jiracli"
+chmod 600 "${XDG_CONFIG_HOME:-$HOME/.config}/jiracli/config.json"
 ```
 
-If `jcli` is not found, add `export PATH="$PATH:$HOME/.dotnet/tools"` to the appropriate shell startup file.
+The expected file mode shown by `ls -l` begins with `-rw-------`. Windows protects the file through the user profile's Windows ACLs and does not use these Unix `chmod` modes.
+
+Windows PowerShell:
+
+```powershell
+jcli site list --config "$env:APPDATA\jiracli\config.json" --json
+$env:JIRACLI_CONFIG = "$env:APPDATA\jiracli\config.json"
+```
+
+macOS Terminal (`zsh`):
+
+```zsh
+jcli site list --config "$HOME/Library/Application Support/jiracli/config.json" --json
+export JIRACLI_CONFIG="$HOME/Library/Application Support/jiracli/config.json"
+```
+
+Linux terminal (`bash`):
+
+```bash
+jcli site list --config "${XDG_CONFIG_HOME:-$HOME/.config}/jiracli/config.json" --json
+export JIRACLI_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/jiracli/config.json"
+```
+
+`--config` applies to that invocation. An exported environment variable applies to commands launched from that shell. `jcli site list --json` reports the absolute loaded path in its `config` field, or `null` if no configuration file was found.
 
 ## Quick start
 
@@ -98,6 +216,36 @@ Use an OS credential store when possible. Configuration never needs to contain a
   }
 }
 ```
+
+The `credential` object is a reference to an existing OS credential-store item; its fields do not contain the token:
+
+| OS | Provider | Required lookup fields |
+|---|---|---|
+| Windows | `windows-credential-manager` | `target`, matching a Generic Credential target |
+| macOS | `macos-keychain` | `service` and `account`, matching a Generic Password's Name/service and Account |
+| Linux | `linux-secret-service` | `service` and `account`, matching Secret Service attributes with those names |
+
+The native item's password/secret contains the Jira API token. Its lookup fields must match the JSON exactly. The profile-level `user` is the Atlassian login email and is independent of a credential-store account label. See the [credential-provider setup guide](docs/credentials.md) for native provisioning steps and a property-by-property reference.
+
+If you intentionally accept the risk of storing a plaintext token, `jcli` can read a `token` property from a user-owned configuration file:
+
+```json
+{
+  "schemaVersion": 1,
+  "defaultProfile": "work",
+  "profiles": {
+    "work": {
+      "url": "https://example.atlassian.net",
+      "user": "user@example.com",
+      "tokenMode": "unscoped",
+      "token": "<JIRA_API_TOKEN>",
+      "defaults": { "project": "DEMO", "pageSize": 50 }
+    }
+  }
+}
+```
+
+Replace the placeholder locally. Never commit, share, or place this file in a synchronized folder. On macOS and Linux, apply the directory and file permissions described above. The CLI reads this compatibility field but never writes it; an OS credential store is safer and remains recommended.
 
 Alternatively, pass a token safely for one invocation:
 

@@ -326,6 +326,8 @@ Human output is the default. `--json` emits a versioned envelope with `schemaVer
 
 This source can be built and packed locally. NuGet publication, executable publication, tags, releases, pushes, PR creation/merge, and release workflow dispatch remain human-only actions. No release has been created by this implementation.
 
+The authoritative CLI/package version is the `<Version>` value in `src/JiraCli.Cli/JiraCli.Cli.csproj`. Every code or documentation change merged into `main` must include an intentional Semantic Versioning update and a matching changelog update before merge. A source version bump prepares a candidate; it does not create or publish a release.
+
 ## Official references
 
 - [.NET support policy](https://dotnet.microsoft.com/en-us/platform/support/policy)

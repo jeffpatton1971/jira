@@ -10,5 +10,6 @@ This is a .NET 10 C# command-line tool for Jira Cloud. Preserve the project boun
 - Resolve names unambiguously or require an ID.
 - Use current supported Jira Cloud endpoints and endpoint-specific pagination.
 - Add synthetic unit/contract tests and update `docs/coverage.md` for command changes.
+- Before merging code or documentation into `main`, update the Semantic Version in `src/JiraCli.Cli/JiraCli.Cli.csproj` and the matching `CHANGELOG.md` entry; never reuse a version for different `main` source states.
 - Do not mutate a live Jira project without separate explicit approval.
 - Tags, releases, publication, pushes, PR creation/merge, and release workflow dispatch are human-only.

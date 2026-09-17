@@ -26,6 +26,13 @@ dotnet pack src/JiraCli.Cli/JiraCli.Cli.csproj --configuration Release --no-buil
 
 Update `docs/coverage.md` whenever command/API coverage changes.
 
+## Versioning and merge policy
+
+- `src/JiraCli.Cli/JiraCli.Cli.csproj` is the authoritative CLI and package version.
+- Every branch merged into `main` with code or documentation changes must include an intentional Semantic Versioning update and a matching `CHANGELOG.md` update before merge.
+- Do not reuse the same version for different source states on `main`.
+- A source version bump does not authorize a tag, package publication, executable upload, GitHub release, or release workflow.
+
 ## Human-only release gate
 
 Agents must never create, move, delete, or push Git tags; create a GitHub release; publish a NuGet package; upload release executables; or dispatch a release workflow. Report a candidate source state for a human to release manually.

@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.1 - Unreleased
 
 - Added the initial .NET 10 cross-platform Jira Cloud CLI.
 - Added .NET tool packaging and self-contained publishing support.

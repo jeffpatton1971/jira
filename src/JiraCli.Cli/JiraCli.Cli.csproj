@@ -5,7 +5,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>jcli</ToolCommandName>
     <PackageId>JiraCli.Tool</PackageId>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Authors>Jeff Patton and JiraCli contributors</Authors>
     <Description>A safety-focused cross-platform CLI for Jira Cloud.</Description>

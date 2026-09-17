@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>jcli</AssemblyName>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>jcli</ToolCommandName>
+    <PackageId>JiraCli.Tool</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Jeff Patton and JiraCli contributors</Authors>
+    <Description>A safety-focused cross-platform CLI for Jira Cloud.</Description>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/jeffpatton1971/jira</RepositoryUrl>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" />
+    <ProjectReference Include="../JiraCli.Core/JiraCli.Core.csproj" />
+    <ProjectReference Include="../JiraCli.Credentials/JiraCli.Credentials.csproj" />
+    <ProjectReference Include="../JiraCli.Credentials.Windows/JiraCli.Credentials.Windows.csproj" />
+    <ProjectReference Include="../JiraCli.Credentials.Mac/JiraCli.Credentials.Mac.csproj" />
+    <ProjectReference Include="../JiraCli.Credentials.Linux/JiraCli.Credentials.Linux.csproj" />
+    <ProjectReference Include="../JiraCli.JiraCloud/JiraCli.JiraCloud.csproj" />
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

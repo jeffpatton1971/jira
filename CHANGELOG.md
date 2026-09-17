@@ -7,5 +7,6 @@
 - Added issue, project, user, metadata, comment, worklog, transition, remote-link, board, sprint, and backlog operations.
 - Added unscoped and scoped API-token Basic authentication.
 - Added read-only Windows Credential Manager, macOS Keychain, and Linux Secret Service adapters.
+- Allowed native macOS Keychain authorization for interactive commands while keeping `--non-interactive` lookups prompt-free and time-bounded.
 - Added centralized read-only mode, previews, confirmations, redaction, destination validation, bounded responses, safe-read retries, and uncertain-write handling.
 - Added stable JSON output, documented exit codes, Windows/macOS/Linux CI, and synthetic tests.

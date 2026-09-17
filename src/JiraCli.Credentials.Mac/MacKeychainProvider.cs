@@ -4,7 +4,7 @@ using JiraCli.Credentials;
 
 namespace JiraCli.Credentials.Mac;
 
-public sealed class MacKeychainProvider : ICredentialStoreProvider
+public sealed class MacKeychainProvider(bool allowInteraction = false) : ICredentialStoreProvider
 {
     private const int ErrSecSuccess = 0;
     private const int ErrSecNotAvailable = -25291;
@@ -14,6 +14,7 @@ public sealed class MacKeychainProvider : ICredentialStoreProvider
     private const int ErrSecItemNotFound = -25300;
 
     public string Name => "macos-keychain";
+    public bool AllowsInteraction { get; } = allowInteraction;
 
     public async ValueTask<CredentialStoreResult> ReadAsync(
         CredentialStoreReference reference,
@@ -36,8 +37,12 @@ public sealed class MacKeychainProvider : ICredentialStoreProvider
 
         try
         {
-            return await Task.Run(() => ReadNative(reference.Service, reference.Account), CancellationToken.None)
-                .WaitAsync(TimeSpan.FromSeconds(15), cancellationToken);
+            var read = Task.Run(
+                () => ReadNative(reference.Service, reference.Account, AllowsInteraction),
+                CancellationToken.None);
+            return AllowsInteraction
+                ? await read.WaitAsync(cancellationToken)
+                : await read.WaitAsync(TimeSpan.FromSeconds(15), cancellationToken);
         }
         catch (TimeoutException)
         {
@@ -47,12 +52,17 @@ public sealed class MacKeychainProvider : ICredentialStoreProvider
         }
     }
 
-    private static CredentialStoreResult ReadNative(string serviceName, string accountName)
+    private static CredentialStoreResult ReadNative(string serviceName, string accountName, bool allowInteraction)
     {
         var service = Encoding.UTF8.GetBytes(serviceName);
         var account = Encoding.UTF8.GetBytes(accountName);
-        _ = SecKeychainGetUserInteractionAllowed(out var previousInteraction);
-        _ = SecKeychainSetUserInteractionAllowed(false);
+        var previousInteractionKnown = SecKeychainGetUserInteractionAllowed(out var previousInteraction) == ErrSecSuccess;
+        var interactionStatus = SecKeychainSetUserInteractionAllowed(allowInteraction);
+        if (interactionStatus != ErrSecSuccess)
+        {
+            return MapStatus(interactionStatus);
+        }
+
         try
         {
             var status = SecKeychainFindGenericPassword(
@@ -91,7 +101,10 @@ public sealed class MacKeychainProvider : ICredentialStoreProvider
         }
         finally
         {
-            _ = SecKeychainSetUserInteractionAllowed(previousInteraction);
+            if (previousInteractionKnown)
+            {
+                _ = SecKeychainSetUserInteractionAllowed(previousInteraction);
+            }
         }
     }
 

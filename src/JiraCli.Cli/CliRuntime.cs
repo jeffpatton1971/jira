@@ -92,9 +92,10 @@ internal sealed class CliRuntime(GlobalOptions options)
             output.Warning("Environment-variable tokens are not equivalent to an OS credential store.");
         }
 
+        var nonInteractive = parseResult.GetValue(options.NonInteractive);
         var resolver = new CredentialResolver([
             new WindowsCredentialManagerProvider(),
-            new MacKeychainProvider(),
+            new MacKeychainProvider(allowInteraction: !nonInteractive),
             new LinuxSecretServiceProvider()
         ]);
         var credential = await resolver.ResolveAsync(
@@ -113,7 +114,7 @@ internal sealed class CliRuntime(GlobalOptions options)
             var safety = new SafetyContext(
                 parseResult.GetValue(options.ReadOnly) || IsTrue(Environment.GetEnvironmentVariable("JIRACLI_READ_ONLY")),
                 parseResult.GetValue(options.DryRun),
-                parseResult.GetValue(options.NonInteractive));
+                nonInteractive);
             return new CliContext(
                 profile,
                 profileName,
